@@ -1,9 +1,2 @@
-complete_blockchain/target
-complete_blockchain/wallet.dat
-complete_blockchain/address.txt
-complete_blockchain/data
-data
 target
-address.txt
-wallet.dat
 Cargo.lock
