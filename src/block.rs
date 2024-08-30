@@ -1,7 +1,3 @@
-// --------------------------------------------------------------------------------------------------
-// Getting started with building the Blockchain ( block.rs / proof of work.rs)
-// --------------------------------------------------------------------------------------------------
-
 // Block.rs file
 use crate::{ProofOfWork, Transaction};
 use serde::{Deserialize, Serialize};
