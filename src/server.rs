@@ -2,7 +2,7 @@ use crate::{
     Block, BlockInTransit, Blockchain, MemoryPool, Nodes, Transaction, UTXOSet, GLOBAL_CONFIG,
 };
 use data_encoding::HEXLOWER;
-use log::{error, info};
+use log::{error, info, trace};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use serde_json::Deserializer;
@@ -50,12 +50,10 @@ impl Server {
             let blockchain = self.blockchain.clone();
             thread::spawn(|| match stream {
                 Ok(stream) => {
-                    //TODO: stream
-                    info!("{:?}", stream);
+                    trace!("{:?}", stream);
                     serve(blockchain, stream).unwrap();
                 }
                 Err(e) => {
-                    //TODO: e
                     error!("{:?}", e);
                 }
             });

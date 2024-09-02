@@ -22,13 +22,7 @@ impl Wallet {
 
     pub fn get_address(&self) -> String {
         let pub_key_hash = hash_pub_key(self.public_key.as_slice());
-        let mut payload: Vec<u8> = vec![];
-        payload.push(VERSION);
-        payload.extend(pub_key_hash.as_slice());
-        let checksum = checksum(payload.as_slice());
-        payload.extend(checksum.as_slice());
-        // version + pub_key_hash + checksum
-        crate::base58_encode(payload.as_slice())
+        convert_address(pub_key_hash.as_slice())
     }
 
     pub fn get_public_key(&self) -> &[u8] {
@@ -52,10 +46,7 @@ fn checksum(payload: &[u8]) -> Vec<u8> {
 }
 
 pub fn validate_address(address: &str) -> bool {
-    let payload = crate::base58_decode(address);
-    let actual_checksum = payload[payload.len() - ADDRESS_CHECK_SUM_LEN..].to_vec();
-    let version = payload[0];
-    let pub_key_hash = payload[1..payload.len() - ADDRESS_CHECK_SUM_LEN].to_vec();
+    let (version, pub_key_hash, actual_checksum) = extract_address(address);
 
     let mut target_vec = vec![];
     target_vec.push(version);
@@ -65,10 +56,20 @@ pub fn validate_address(address: &str) -> bool {
 }
 
 pub fn convert_address(pub_hash_key: &[u8]) -> String {
+    // version + pub_key_hash + checksum
     let mut payload: Vec<u8> = vec![];
     payload.push(VERSION);
     payload.extend(pub_hash_key);
     let checksum = checksum(payload.as_slice());
     payload.extend(checksum.as_slice());
     crate::base58_encode(payload.as_slice())
+}
+
+// version + pub_key_hash + checksum
+pub fn extract_address(address: &str) -> (u8, Vec<u8>, Vec<u8>) {
+    let payload = crate::base58_decode(address);
+    let actual_checksum = payload[payload.len() - ADDRESS_CHECK_SUM_LEN..].to_vec();
+    let version = payload[0];
+    let pub_key_hash = payload[1..payload.len() - ADDRESS_CHECK_SUM_LEN].to_vec();
+    (version, pub_key_hash, actual_checksum)
 }

@@ -1,5 +1,5 @@
 use crate::wallet::hash_pub_key;
-use crate::{base58_decode, wallet, Blockchain, UTXOSet, Wallets};
+use crate::{base58_decode, convert_address, wallet, Blockchain, UTXOSet, Wallets};
 use data_encoding::HEXLOWER;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -36,8 +36,13 @@ impl TXInput {
         self.pub_key.as_slice()
     }
 
+    pub fn get_address(&self) -> String {
+        let pub_key_hash = hash_pub_key(&self.pub_key);
+        convert_address(pub_key_hash.as_slice())
+    }
+
     pub fn uses_key(&self, pub_key_hash: &[u8]) -> bool {
-        let locking_hash = wallet::hash_pub_key(self.pub_key.as_slice());
+        let locking_hash = hash_pub_key(&self.pub_key);
         return locking_hash.eq(pub_key_hash);
     }
 }
@@ -66,6 +71,10 @@ impl TXOutput {
         self.pub_key_hash.as_slice()
     }
 
+    pub fn get_address(&self) -> String {
+        convert_address(&self.pub_key_hash)
+    }
+
     fn lock(&mut self, address: &str) {
         let payload = base58_decode(address);
         let pub_key_hash = payload[1..payload.len() - wallet::ADDRESS_CHECK_SUM_LEN].to_vec();
@@ -74,6 +83,12 @@ impl TXOutput {
 
     pub fn is_locked_with_key(&self, pub_key_hash: &[u8]) -> bool {
         self.pub_key_hash.eq(pub_key_hash)
+    }
+
+    pub fn is_locked_with_addr(&self, address: &str) -> bool {
+        let payload = base58_decode(address);
+        let pub_key_hash = payload[1..payload.len() - wallet::ADDRESS_CHECK_SUM_LEN].to_vec();
+        self.pub_key_hash.eq(&pub_key_hash)
     }
 }
 
@@ -100,6 +115,7 @@ impl Transaction {
         return tx;
     }
 
+    //NOTE: What happened if accumulated is equal to amount?
     pub fn new_utxo_transaction(
         from: &str,
         to: &str,
@@ -249,4 +265,3 @@ impl Transaction {
         bincode::deserialize(bytes).unwrap()
     }
 }
-

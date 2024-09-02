@@ -49,7 +49,7 @@ impl UTXOSet {
         (accmulated, unspent_outputs)
     }
 
-    pub fn find_utxo(&self, pub_key_hash: &[u8]) -> Vec<TXOutput> {
+    pub fn find_utxo(&self, address: &str) -> Vec<TXOutput> {
         let db = self.blockchain.get_db();
         let utxo_tree = db.open_tree(UTXO_TREE).unwrap();
         let mut utxos = vec![];
@@ -58,7 +58,7 @@ impl UTXOSet {
             let outs: Vec<TXOutput> = bincode::deserialize(v.to_vec().as_slice())
                 .expect("unable to deserialize TXOutput");
             for out in outs.iter() {
-                if out.is_locked_with_key(pub_key_hash) {
+                if out.is_locked_with_addr(address) {
                     utxos.push(out.clone())
                 }
             }
@@ -123,4 +123,3 @@ impl UTXOSet {
         }
     }
 }
-

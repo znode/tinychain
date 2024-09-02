@@ -2,8 +2,8 @@ use data_encoding::HEXLOWER;
 use log::{info, LevelFilter};
 use structopt::StructOpt;
 use tinychain::{
-    convert_address, hash_pub_key, send_tx, utils, validate_address, Blockchain, Server,
-    Transaction, UTXOSet, Wallets, ADDRESS_CHECK_SUM_LEN, CENTERAL_NODE, GLOBAL_CONFIG,
+    send_tx, validate_address, Blockchain, Server, Transaction, UTXOSet, Wallets, CENTERAL_NODE,
+    GLOBAL_CONFIG,
 };
 
 #[derive(Debug, StructOpt)]
@@ -80,12 +80,9 @@ fn main() {
             if !address_valid {
                 panic!("ERROR: Address is not valid")
             }
-            let payload = utils::base58_decode(address.as_str());
-            let pub_key_hash = &payload[1..payload.len() - ADDRESS_CHECK_SUM_LEN];
-
             let blockchain = Blockchain::load();
             let utxo_set = UTXOSet::new(blockchain);
-            let utxos = utxo_set.find_utxo(pub_key_hash);
+            let utxos = utxo_set.find_utxo(&address);
             let mut balance = 0;
             for utxo in utxos {
                 balance += utxo.get_value();
@@ -140,8 +137,7 @@ fn main() {
                     if !tx.is_coinbase() {
                         for input in tx.get_vin() {
                             let txid_hex = HEXLOWER.encode(input.get_txid());
-                            let pub_key_hash = hash_pub_key(input.get_pub_key());
-                            let address = convert_address(pub_key_hash.as_slice());
+                            let address = input.get_address();
                             info!(
                                 "-- Input txid = {}, vout = {}, from = {}",
                                 txid_hex,
@@ -151,8 +147,7 @@ fn main() {
                         }
                     }
                     for output in tx.get_vout() {
-                        let pub_key_hash = output.get_pub_key_hash();
-                        let address = convert_address(pub_key_hash);
+                        let address = output.get_address();
                         info!("-- Output value = {}, to = {}", output.get_value(), address,)
                     }
                 }

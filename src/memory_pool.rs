@@ -50,7 +50,7 @@ impl MemoryPool {
     }
 }
 
-
+//Vector storing hash of block in transit
 pub struct BlockInTransit {
     inner: RwLock<Vec<Vec<u8>>>,
 }
